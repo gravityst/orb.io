@@ -23,7 +23,7 @@ const EJECT_MASS = 12;
 const MIN_EJECT_MASS = 30;
 const MERGE_COOLDOWN = 15000; // ms before split cells can merge back
 const MASS_DECAY_RATE = 0.001; // per second (0.1% loss)
-const EAT_SIZE_RATIO = 1.15; // must be 15% bigger to eat
+const EAT_SIZE_RATIO = 1.08; // must be 8% bigger to eat
 const SKINS_COUNT = 20;
 
 const ROOM_NAMES = ['Nebula', 'Cosmos', 'Stardust'];
@@ -34,7 +34,7 @@ const BOT_NAMES = [
 ];
 
 function massToRadius(m) { return Math.sqrt(m) * 3.5; }
-function massToSpeed(m) { return 240 - Math.sqrt(m) * 0.8; } // bigger = slower
+function massToSpeed(m) { return Math.max(60, 300 - Math.sqrt(m) * 2.5); } // bigger = slower, min 60
 
 class Room {
   constructor(id, name, opts = {}) {
@@ -233,7 +233,7 @@ class Room {
       // Direction toward target
       const dx = player.targetX - cell.x, dy = player.targetY - cell.y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      const boost = 800;
+      const boost = 1200; // fast split launch to catch prey
       const newCell = {
         id: this.nextId++,
         x: cell.x, y: cell.y,

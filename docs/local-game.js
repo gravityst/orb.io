@@ -8,7 +8,7 @@ class LocalGame {
     this.FOOD_COUNT = 1500;
     this.VIRUS_COUNT = 30;
     this.START_MASS = 20;
-    this.EAT_RATIO = 1.15;
+    this.EAT_RATIO = 1.08;
     this.BOT_COUNT = 15;
     this.nextId = 1;
     this.players = [];
@@ -45,7 +45,7 @@ class LocalGame {
     return { x: Math.cos(a) * r, y: Math.sin(a) * r };
   }
   _massToRadius(m) { return Math.sqrt(m) * 3.5; }
-  _massToSpeed(m) { return 240 - Math.sqrt(m) * 0.8; }
+  _massToSpeed(m) { return Math.max(60, 300 - Math.sqrt(m) * 2.5); }
 
   _createPlayer(name, isBot, skinIdx) {
     const id = this.nextId++;
@@ -80,7 +80,7 @@ class LocalGame {
       const dx = me.targetX - cell.x, dy = me.targetY - cell.y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
       newCells.push(cell);
-      newCells.push({ id: this.nextId++, x: cell.x, y: cell.y, vx: (dx/d)*800, vy: (dy/d)*800, mass: half, mergeTime: now + 15000 });
+      newCells.push({ id: this.nextId++, x: cell.x, y: cell.y, vx: (dx/d)*1200, vy: (dy/d)*1200, mass: half, mergeTime: now + 15000 });
     }
     me.cells = newCells;
   }
