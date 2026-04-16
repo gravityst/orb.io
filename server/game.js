@@ -258,12 +258,15 @@ class Room {
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
       const nx = dx / d, ny = dy / d;
       const r = massToRadius(cell.mass);
+      // Spawn well outside the cell + add no-eat cooldown so it doesn't re-absorb
       this.ejected.push({
-        x: cell.x + nx * r, y: cell.y + ny * r,
-        vx: nx * 700, vy: ny * 700,
+        x: cell.x + nx * (r + 30), y: cell.y + ny * (r + 30),
+        vx: nx * 800, vy: ny * 800,
         mass: EJECT_MASS,
         color: player.skin,
         life: 5,
+        ownerId: player.id,
+        spawnTime: Date.now(),
       });
     }
   }
@@ -363,11 +366,13 @@ class Room {
           this.food.splice(i, 1);
         }
       }
-      // Eat ejected mass
+      // Eat ejected mass — but not your own pellets within 1 second of ejecting
+      const now = Date.now();
       for (let i = this.ejected.length - 1; i >= 0; i--) {
         const e = this.ejected[i];
+        if (e.ownerId === p.id && (now - (e.spawnTime || 0)) < 1000) continue;
         const dx = e.x - cell.x, dy = e.y - cell.y;
-        if (dx * dx + dy * dy < r * r && cell.mass > 30) {
+        if (dx * dx + dy * dy < r * r) {
           cell.mass += e.mass;
           this.ejected.splice(i, 1);
         }

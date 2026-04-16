@@ -94,7 +94,7 @@ class LocalGame {
       const dx = me.targetX - cell.x, dy = me.targetY - cell.y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
       const r = this._massToRadius(cell.mass);
-      this.ejected.push({ x: cell.x + (dx/d)*r, y: cell.y + (dy/d)*r, vx: (dx/d)*700, vy: (dy/d)*700, mass: 4, color: me.skin, life: 5 });
+      this.ejected.push({ x: cell.x + (dx/d)*(r+30), y: cell.y + (dy/d)*(r+30), vx: (dx/d)*800, vy: (dy/d)*800, mass: 4, color: me.skin, life: 5, ownerId: me.id, spawnTime: Date.now() });
     }
   }
 
@@ -148,9 +148,12 @@ class LocalGame {
         const f = this.food[i]; const dx = f.x - cell.x, dy = f.y - cell.y;
         if (dx * dx + dy * dy < r * r) { cell.mass += f.mass; this.food.splice(i, 1); }
       }
+      const now = Date.now();
       for (let i = this.ejected.length - 1; i >= 0; i--) {
-        const e = this.ejected[i]; const dx = e.x - cell.x, dy = e.y - cell.y;
-        if (dx * dx + dy * dy < r * r && cell.mass > 30) { cell.mass += e.mass; this.ejected.splice(i, 1); }
+        const e = this.ejected[i];
+        if (e.ownerId === p.id && (now - (e.spawnTime || 0)) < 1000) continue;
+        const dx = e.x - cell.x, dy = e.y - cell.y;
+        if (dx * dx + dy * dy < r * r) { cell.mass += e.mass; this.ejected.splice(i, 1); }
       }
     }
     // Virus collision
