@@ -314,7 +314,7 @@
       div.innerHTML = `<span>${name}${aiBadge}</span><span>${score}</span>`;
       leaderboardEntries.appendChild(div);
     }
-    playerCountEl.textContent = 'Orbs: ' + players.reduce((s, p) => s + p.cells.length, 0);
+    playerCountEl.textContent = 'Players: ' + players.filter(p => p.cells && p.cells.length > 0).length;
   }
 
   function sendDirection() {
@@ -539,7 +539,7 @@
           div.innerHTML = `<span>${e.name}${ai}</span><span>${Math.round(e.score)}</span>`;
           leaderboardEntries.appendChild(div);
         }
-        playerCountEl.textContent = 'Orbs: ' + players.reduce((s, p) => s + p.cells.length, 0);
+        playerCountEl.textContent = 'Players: ' + players.filter(p => p.cells && p.cells.length > 0).length;
       } else if (gameMode === 'multiplayer') {
         sendTimer += dt;
         if (sendTimer >= 0.05) { sendDirection(); sendTimer = 0; }
