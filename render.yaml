@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: snake-io
+    name: orb-io
     runtime: node
     buildCommand: npm install
     startCommand: node server/index.js
