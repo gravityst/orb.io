@@ -1,0 +1,19 @@
+{
+  "name": "orb-io",
+  "version": "1.0.0",
+  "description": "Orb.io — cosmic multiplayer agar.io-style game",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "tunnel": "lt --port 3000 --subdomain orbio-${SUBDOMAIN:-host}",
+    "host": "concurrently \"npm start\" \"npm run tunnel\""
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "localtunnel": "^2.0.2"
+  }
+}
