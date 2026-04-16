@@ -89,12 +89,12 @@ class LocalGame {
     const me = this.players.find(p => p.id === this.playerId);
     if (!me) return;
     for (const cell of me.cells) {
-      if (cell.mass < 25) continue;
-      cell.mass -= 12;
+      if (cell.mass < 22) continue;
+      cell.mass -= 10;
       const dx = me.targetX - cell.x, dy = me.targetY - cell.y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
       const r = this._massToRadius(cell.mass);
-      this.ejected.push({ x: cell.x + (dx/d)*r, y: cell.y + (dy/d)*r, vx: (dx/d)*700, vy: (dy/d)*700, mass: 12, color: me.skin, life: 5 });
+      this.ejected.push({ x: cell.x + (dx/d)*r, y: cell.y + (dy/d)*r, vx: (dx/d)*700, vy: (dy/d)*700, mass: 10, color: me.skin, life: 5 });
     }
   }
 

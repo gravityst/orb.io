@@ -93,12 +93,13 @@
   canvas.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
   window.addEventListener('keydown', (e) => {
     if (!running) return;
+    if (e.repeat) return; // ignore held-down repeats (stops Mac accent popup)
     if (e.code === 'Space') {
-      e.preventDefault();
+      e.preventDefault(); e.stopPropagation();
       if (gameMode === 'local' && localGame) localGame.playerSplit();
       else sendSplit();
     } else if (e.code === 'KeyW') {
-      e.preventDefault();
+      e.preventDefault(); e.stopPropagation();
       if (gameMode === 'local' && localGame) localGame.playerEject();
       else sendEject();
     }
