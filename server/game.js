@@ -326,7 +326,8 @@ class Room {
         const nx = dx / d, ny = dy / d;
         // Acceleration toward cursor, not instant snap
         // Heavier cells accelerate slower (more inertia)
-        const accel = speed * 3.0 / Math.max(1, Math.sqrt(cell.mass) * 0.3);
+        // Reach max speed in ~0.25s regardless of size (minor inertia only)
+        const accel = speed * 4;
         cell.vx += nx * accel * dt;
         cell.vy += ny * accel * dt;
         // Cap velocity to max speed

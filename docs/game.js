@@ -526,6 +526,20 @@
         food = localGame.food;
         viruses = localGame.viruses;
         ejected = localGame.ejected;
+        // Local leaderboard
+        const sorted = [...players].map(p => ({
+          id: p.id, name: p.name, isBot: p.isBot,
+          score: p.cells.reduce((s, c) => s + c.mass, 0)
+        })).sort((a, b) => b.score - a.score).slice(0, 10);
+        leaderboardEntries.innerHTML = '';
+        for (const e of sorted) {
+          const div = document.createElement('div');
+          div.className = 'lb-entry' + (e.id === myId ? ' me' : '');
+          const ai = e.isBot ? '<span class="ai-badge">AI</span>' : '';
+          div.innerHTML = `<span>${e.name}${ai}</span><span>${Math.round(e.score)}</span>`;
+          leaderboardEntries.appendChild(div);
+        }
+        playerCountEl.textContent = 'Orbs: ' + players.reduce((s, p) => s + p.cells.length, 0);
       } else if (gameMode === 'multiplayer') {
         sendTimer += dt;
         if (sendTimer >= 0.05) { sendDirection(); sendTimer = 0; }

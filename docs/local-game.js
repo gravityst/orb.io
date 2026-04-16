@@ -130,7 +130,7 @@ class LocalGame {
       const d = Math.sqrt(dx * dx + dy * dy);
       if (d > 1) {
         const nx = dx / d, ny = dy / d;
-        const accel = speed * 3.0 / Math.max(1, Math.sqrt(cell.mass) * 0.3);
+        const accel = speed * 4;
         cell.vx += nx * accel * dt;
         cell.vy += ny * accel * dt;
         const vel = Math.sqrt(cell.vx * cell.vx + cell.vy * cell.vy);
