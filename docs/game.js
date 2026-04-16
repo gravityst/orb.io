@@ -35,7 +35,7 @@
 
   // --- Config ---
   const MAP_SIZE = 10000;
-  const DEFAULT_SERVER_URL = ''; // set after deploy
+  const DEFAULT_SERVER_URL = 'https://orb-io.onrender.com';
   let CUSTOM_SERVER_URL = localStorage.getItem('customServerUrl') || '';
   (() => {
     const urlParam = new URLSearchParams(location.search).get('server');
@@ -74,9 +74,11 @@
   let selectedSkin = parseInt(localStorage.getItem('selectedSkin') || '0', 10);
 
   // --- State ---
-  let players = []; // {id, skin, isBot, kills, name, cells:[{x,y,mass}]}
+  let players = [];
   let food = [], viruses = [], ejected = [];
   let myId = null, ws = null, running = false;
+  let gameMode = null; // 'local' | 'multiplayer'
+  let localGame = null;
   let camera = { x: 0, y: 0, zoom: 1 };
   let mouseX = 0, mouseY = 0;
   let lastFrame = 0, animTime = 0;
@@ -90,8 +92,15 @@
   canvas.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
   window.addEventListener('keydown', (e) => {
     if (!running) return;
-    if (e.code === 'Space') { e.preventDefault(); sendSplit(); }
-    else if (e.code === 'KeyW') { e.preventDefault(); sendEject(); }
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (gameMode === 'local' && localGame) localGame.playerSplit();
+      else sendSplit();
+    } else if (e.code === 'KeyW') {
+      e.preventDefault();
+      if (gameMode === 'local' && localGame) localGame.playerEject();
+      else sendEject();
+    }
   });
 
   // Skin picker
@@ -131,6 +140,27 @@
     cx.stroke();
   }
 
+  const playAIBtn = document.getElementById('playAIBtn');
+  playAIBtn.addEventListener('click', startLocalGame);
+  nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') startLocalGame(); });
+
+  function startLocalGame() {
+    gameMode = 'local';
+    const name = nameInput.value.trim() || 'Player';
+    localGame = new LocalGame(name, selectedSkin);
+    myId = localGame.playerId;
+    localGame.onPlayerDeath((mass) => {
+      const me = localGame.players.find(p => p.id === myId);
+      const totalMass = me ? me.cells.reduce((s, c) => s + c.mass, 0) : mass;
+      finalScoreEl.textContent = Math.round(totalMass);
+      deathScreen.style.display = 'flex';
+      running = false;
+    });
+    const me = localGame.players.find(p => p.id === myId);
+    if (me && me.cells.length > 0) { camera.x = me.cells[0].x; camera.y = me.cells[0].y; }
+    hideAllScreens(); hud.style.display = 'block'; running = true;
+  }
+
   playBtn.addEventListener('click', () => {
     hideAllScreens(); roomScreen.style.display = 'flex';
     fetchRooms();
@@ -138,10 +168,13 @@
   skinsBtn.addEventListener('click', () => { hideAllScreens(); skinScreen.style.display = 'flex'; });
   skinBackBtn.addEventListener('click', () => { hideAllScreens(); startScreen.style.display = 'flex'; });
   roomBackBtn.addEventListener('click', () => { hideAllScreens(); startScreen.style.display = 'flex'; });
-  respawnBtn.addEventListener('click', () => { if (currentRoomId) startGame(currentRoomId); });
+  respawnBtn.addEventListener('click', () => {
+    if (gameMode === 'local') startLocalGame();
+    else if (currentRoomId) startGame(currentRoomId);
+  });
   mainMenuBtn.addEventListener('click', () => {
     disconnect();
-    running = false; myId = null;
+    gameMode = null; running = false; myId = null; localGame = null;
     players = []; food = []; viruses = []; ejected = [];
     hideAllScreens(); startScreen.style.display = 'flex';
   });
@@ -176,7 +209,9 @@
   }
 
   function startGame(roomId) {
+    gameMode = 'multiplayer';
     currentRoomId = roomId;
+    localGame = null;
     const name = nameInput.value.trim() || 'Player';
     connect(name, roomId);
     hideAllScreens(); hud.style.display = 'block';
@@ -474,8 +509,20 @@
     animTime += dt;
 
     if (running) {
-      sendTimer += dt;
-      if (sendTimer >= 0.05) { sendDirection(); sendTimer = 0; }
+      if (gameMode === 'local' && localGame) {
+        // Convert mouse to world coords
+        const worldX = (mouseX - canvas.width / 2) / camera.zoom + camera.x;
+        const worldY = (mouseY - canvas.height / 2) / camera.zoom + camera.y;
+        localGame.setPlayerTarget(worldX, worldY);
+        localGame.tick(dt);
+        players = localGame.players.filter(p => p.alive);
+        food = localGame.food;
+        viruses = localGame.viruses;
+        ejected = localGame.ejected;
+      } else if (gameMode === 'multiplayer') {
+        sendTimer += dt;
+        if (sendTimer >= 0.05) { sendDirection(); sendTimer = 0; }
+      }
 
       // Camera follow my cells' centroid
       const me = players.find(p => p.id === myId);
@@ -485,7 +532,6 @@
         tx /= totalMass; ty /= totalMass;
         camera.x += (tx - camera.x) * 0.2;
         camera.y += (ty - camera.y) * 0.2;
-        // Zoom based on total mass
         const targetZoom = Math.max(0.35, 1.0 - Math.sqrt(totalMass) * 0.015);
         camera.zoom += (targetZoom - camera.zoom) * 0.05;
         myScoreEl.textContent = 'Mass: ' + Math.round(totalMass);
