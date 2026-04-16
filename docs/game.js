@@ -433,12 +433,21 @@
   }
 
   function drawEjected() {
-    const FOOD_COLORS = ['#ff64b4', '#64dcff', '#b48cff', '#ffcc64', '#64ff9f'];
     for (const e of ejected) {
-      ctx.fillStyle = FOOD_COLORS[e.color % FOOD_COLORS.length] || '#fff';
+      // Use the skin colors so it looks like a piece of the player
+      const skin = SKINS[e.color] || SKINS[0];
+      const r = 14;
+      // Outer glow
+      const grad = ctx.createRadialGradient(e.x, e.y, r * 0.3, e.x, e.y, r * 1.8);
+      grad.addColorStop(0, skin.inner);
+      grad.addColorStop(0.5, skin.outer);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(e.x, e.y, 8, 0, Math.PI * 2);
+      ctx.arc(e.x, e.y, r * 1.8, 0, Math.PI * 2);
       ctx.fill();
+      // Core orb
+      drawOrb(ctx, e.x, e.y, r, skin);
     }
   }
 
