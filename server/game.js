@@ -314,18 +314,24 @@ class Room {
     for (const cell of p.cells) {
       // Apply velocity (from split/eject recoil)
       cell.x += cell.vx * dt; cell.y += cell.vy * dt;
-      cell.vx *= 0.88; cell.vy *= 0.88;
-      if (Math.abs(cell.vx) < 1) cell.vx = 0;
-      if (Math.abs(cell.vy) < 1) cell.vy = 0;
+      // Friction — higher for normal movement, lower for split velocity
+      const friction = (Math.abs(cell.vx) > 200 || Math.abs(cell.vy) > 200) ? 0.92 : 0.96;
+      cell.vx *= Math.pow(friction, dt * 60); cell.vy *= Math.pow(friction, dt * 60);
 
-      // Move toward target
+      // Move toward target with soft inertia (floaty agar.io feel)
       const speed = massToSpeed(cell.mass);
       const dx = p.targetX - cell.x, dy = p.targetY - cell.y;
       const d = Math.sqrt(dx * dx + dy * dy);
       if (d > 1) {
         const nx = dx / d, ny = dy / d;
-        const mv = Math.min(d, speed * dt);
-        cell.x += nx * mv; cell.y += ny * mv;
+        // Acceleration toward cursor, not instant snap
+        // Heavier cells accelerate slower (more inertia)
+        const accel = speed * 3.0 / Math.max(1, Math.sqrt(cell.mass) * 0.3);
+        cell.vx += nx * accel * dt;
+        cell.vy += ny * accel * dt;
+        // Cap velocity to max speed
+        const vel = Math.sqrt(cell.vx * cell.vx + cell.vy * cell.vy);
+        if (vel > speed) { cell.vx *= speed / vel; cell.vy *= speed / vel; }
       }
 
       // Mass decay

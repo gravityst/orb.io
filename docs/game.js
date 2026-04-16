@@ -84,6 +84,7 @@
   let lastFrame = 0, animTime = 0;
   let connId = 0;
   let lastServerPing = 0;
+  const displayRadius = new Map(); // cellKey → displayed radius (smoothed)
 
   function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; menuBg.width = window.innerWidth; menuBg.height = window.innerHeight; }
   window.addEventListener('resize', resize); resize();
@@ -450,10 +451,16 @@
     });
     for (const p of sorted) {
       const skin = SKINS[p.skin] || SKINS[0];
-      // Draw each cell
+      // Draw each cell with smooth radius growth
       for (const c of p.cells) {
-        const r = massToRadius(c.mass);
-        drawOrb(ctx, c.x, c.y, r, skin);
+        const targetR = massToRadius(c.mass);
+        const key = p.id + '_' + (c.id || c.x.toFixed(0));
+        let dispR = displayRadius.get(key) || targetR;
+        // Smooth growth — expands toward target, never shrinks instantly
+        if (targetR > dispR) dispR += (targetR - dispR) * 0.15; // grow smoothly
+        else dispR += (targetR - dispR) * 0.3; // shrink a bit faster
+        displayRadius.set(key, dispR);
+        drawOrb(ctx, c.x, c.y, dispR, skin);
       }
       // Draw name + mass on largest cell
       if (p.cells.length > 0) {

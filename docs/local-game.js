@@ -121,11 +121,21 @@ class LocalGame {
     const now = Date.now();
     for (const cell of p.cells) {
       cell.x += cell.vx * dt; cell.y += cell.vy * dt;
-      cell.vx *= 0.88; cell.vy *= 0.88;
+      // Friction — higher for normal movement, lower for split velocity
+      const friction = (Math.abs(cell.vx) > 200 || Math.abs(cell.vy) > 200) ? 0.92 : 0.96;
+      cell.vx *= Math.pow(friction, dt * 60); cell.vy *= Math.pow(friction, dt * 60);
+      // Soft inertia toward cursor (floaty agar.io feel)
       const speed = this._massToSpeed(cell.mass);
       const dx = p.targetX - cell.x, dy = p.targetY - cell.y;
       const d = Math.sqrt(dx * dx + dy * dy);
-      if (d > 1) { const mv = Math.min(d, speed * dt); cell.x += (dx/d)*mv; cell.y += (dy/d)*mv; }
+      if (d > 1) {
+        const nx = dx / d, ny = dy / d;
+        const accel = speed * 3.0 / Math.max(1, Math.sqrt(cell.mass) * 0.3);
+        cell.vx += nx * accel * dt;
+        cell.vy += ny * accel * dt;
+        const vel = Math.sqrt(cell.vx * cell.vx + cell.vy * cell.vy);
+        if (vel > speed) { cell.vx *= speed / vel; cell.vy *= speed / vel; }
+      }
       if (cell.mass > this.START_MASS) cell.mass *= (1 - 0.001 * dt);
       const r = this._massToRadius(cell.mass), half = this.MAP_SIZE / 2;
       cell.x = Math.max(-half + r, Math.min(half - r, cell.x));
