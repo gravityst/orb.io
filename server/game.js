@@ -20,7 +20,7 @@ const START_MASS = 20;
 const MIN_SPLIT_MASS = 35;
 const MAX_CELLS = 16;
 const EJECT_MASS = 12;
-const MIN_EJECT_MASS = 30;
+const MIN_EJECT_MASS = 25;
 const MERGE_COOLDOWN = 15000; // ms before split cells can merge back
 const MASS_DECAY_RATE = 0.001; // per second (0.1% loss)
 const EAT_SIZE_RATIO = 1.08; // must be 8% bigger to eat
@@ -34,7 +34,7 @@ const BOT_NAMES = [
 ];
 
 function massToRadius(m) { return Math.sqrt(m) * 3.5; }
-function massToSpeed(m) { return Math.max(60, 300 - Math.sqrt(m) * 2.5); } // bigger = slower, min 60
+function massToSpeed(m) { return Math.max(100, 300 - Math.sqrt(m) * 1.8); } // flatter curve, min 100
 
 class Room {
   constructor(id, name, opts = {}) {
@@ -104,10 +104,11 @@ class Room {
   _createFood() {
     const r = Math.random();
     let mass;
-    if (r < 0.80) mass = 1;        // tiny pellets
-    else if (r < 0.95) mass = 3;   // small
-    else if (r < 0.99) mass = 8;   // medium rare
-    else mass = 20;                // rare big "bloat" orb
+    if (r < 0.55) mass = 1;         // tiny pellets (reduced)
+    else if (r < 0.80) mass = 3;    // small (more common now)
+    else if (r < 0.93) mass = 6;    // medium
+    else if (r < 0.98) mass = 12;   // large
+    else mass = 25;                 // rare big orb
     const pos = this._randomPos(1.0);
     return { x: pos.x, y: pos.y, mass, color: Math.floor(Math.random() * 12) };
   }
@@ -233,7 +234,7 @@ class Room {
       // Direction toward target
       const dx = player.targetX - cell.x, dy = player.targetY - cell.y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      const boost = 1200; // fast split launch to catch prey
+      const boost = 1500; // fast split launch to catch prey
       const newCell = {
         id: this.nextId++,
         x: cell.x, y: cell.y,

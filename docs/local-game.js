@@ -45,7 +45,7 @@ class LocalGame {
     return { x: Math.cos(a) * r, y: Math.sin(a) * r };
   }
   _massToRadius(m) { return Math.sqrt(m) * 3.5; }
-  _massToSpeed(m) { return Math.max(60, 300 - Math.sqrt(m) * 2.5); }
+  _massToSpeed(m) { return Math.max(100, 300 - Math.sqrt(m) * 1.8); }
 
   _createPlayer(name, isBot, skinIdx) {
     const id = this.nextId++;
@@ -58,7 +58,7 @@ class LocalGame {
 
   _createFood() {
     const r = Math.random();
-    let mass = r < 0.80 ? 1 : r < 0.95 ? 3 : r < 0.99 ? 8 : 20;
+    let mass = r < 0.55 ? 1 : r < 0.80 ? 3 : r < 0.93 ? 6 : r < 0.98 ? 12 : 25;
     const pos = this._rpos(1.0);
     return { x: pos.x, y: pos.y, mass, color: Math.floor(Math.random() * 12) };
   }
@@ -80,7 +80,7 @@ class LocalGame {
       const dx = me.targetX - cell.x, dy = me.targetY - cell.y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
       newCells.push(cell);
-      newCells.push({ id: this.nextId++, x: cell.x, y: cell.y, vx: (dx/d)*1200, vy: (dy/d)*1200, mass: half, mergeTime: now + 15000 });
+      newCells.push({ id: this.nextId++, x: cell.x, y: cell.y, vx: (dx/d)*1500, vy: (dy/d)*1500, mass: half, mergeTime: now + 15000 });
     }
     me.cells = newCells;
   }
@@ -89,7 +89,7 @@ class LocalGame {
     const me = this.players.find(p => p.id === this.playerId);
     if (!me) return;
     for (const cell of me.cells) {
-      if (cell.mass < 30) continue;
+      if (cell.mass < 25) continue;
       cell.mass -= 12;
       const dx = me.targetX - cell.x, dy = me.targetY - cell.y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
